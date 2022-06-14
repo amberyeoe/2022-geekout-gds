@@ -19,23 +19,21 @@ export type TodoItemProps = {
 };
 
 function TodoItem(props: TodoItemProps) {
-  /* create state here */
-
+  
   const updateTodoItem = useCallback(async () => {
     await axios.put(`${CONFIG.API_ENDPOINT}/todos/${props.id}`, {
       id: props.id,
       description: props.description,
-      /* persist the state of the todo item */
     });
   }, [props.description, props.id]);
-
+  
   useEffect(() => {
     /* mark the todo when done (as a dependency) changes */
   }, [props.description, updateTodoItem]);
-
+  
   return (<>
     <tr>
-      <td>{/* insert checkbox here */}</td>
+      <td><input type="checkbox" checked={done} onChange={(event) => setDone(event.currentTarget.checked)}></input></td>
       <td width={'100%'}>{props.description}</td>
     </tr>
   </>
@@ -43,23 +41,27 @@ function TodoItem(props: TodoItemProps) {
 }
 
 interface TodoProps {
-
+  
 }
 
 function Todo(props: TodoProps) {
   const [todoItems, setTodoItems] = useState<{ [id: string]: TodoItemProps }>({});
   const [newTodoDescription, setNewTodoDescription] = useState('');
-
+  const [isRefresh, setIsRefresh] = useState(false); 
+  
   const populateTodos = useCallback(async () => {
     const result = await axios.get(`${CONFIG.API_ENDPOINT}/todos`);
     setTodoItems(result.data);
   }, []);
-
+  
   const onRefreshClicked = useCallback(async () => {
-    console.log('Refresh button clicked');
-    /* refresh todos here */
+    setTimeout(async () => {
+      setIsRefresh(true)
+      await populateTodos();
+      setIsRefresh(false)
+    }, 400);
   }, [populateTodos]);
-
+  
   useEffect(() => {
     onRefreshClicked();
   }, [onRefreshClicked]);
@@ -98,7 +100,9 @@ function Todo(props: TodoProps) {
                       <Button isPrimary isLoading={false}>Submit</Button>
                     </Col>
                     <Col>
-                      {/* insert button here */}
+                    <Button type="button" isOutline isLoading={isRefresh} onClick={onRefreshClicked}>
+                      <span className="sgds-icon sgds-icon-refresh" />
+                    </Button>
                     </Col>
                   </Row>
                 </div>
